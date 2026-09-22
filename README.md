@@ -25,7 +25,14 @@ Nodejs_Auth_JWT/
 │   ├── .env.example          # Template for environment variables
 │   ├── .gitignore            # Ignores .env and node_modules
 │   ├── package.json
-│   └── server.js             # Express API with JWT auth logic
+│   └── src/
+│       ├── config/           # Centralized environment configuration
+│       ├── controllers/      # Request handlers with Constructor Injection
+│       ├── middleware/       # JWT auth & error handling middlewares
+│       ├── repositories/     # Data access layer (UserRepository)
+│       ├── routes/           # Express router factories
+│       ├── app.js            # Composition Root configuring Express
+│       └── server.js         # HTTP server entrypoint
 │
 ├── frontend/
 │   ├── public/
