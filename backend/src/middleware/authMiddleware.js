@@ -2,17 +2,30 @@ import jwt from "jsonwebtoken";
 import { config } from "../config/env.js";
 
 export function authenticateToken(req, res, next) {
-  const token = req.cookies?.token;
+  const token = req.cookies?.accessToken;
   if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({
+      message: "Unauthorized",
+      code: "TOKEN_MISSING"
+    });
   }
 
   try {
-    const payload = jwt.verify(token, config.jwtSecret);
+    const payload = jwt.verify(token, config.jwtAccessSecret);
     req.user = payload;
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid Token" });
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({
+        message: "Access token expired",
+        code: "TOKEN_EXPIRED"
+      });
+    }
+
+    return res.status(401).json({
+      message: "Invalid access token",
+      code: "TOKEN_INVALID"
+    });
   }
 }
 

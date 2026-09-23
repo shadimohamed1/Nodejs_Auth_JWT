@@ -8,10 +8,12 @@ A simple, secure, full-stack authentication system built with **Express.js** and
 
 - **User Registration**: Register users with password hashing via `bcryptjs`.
 - **User Authentication**: Secure sign-in verifying hashed passwords.
-- **JWT in HttpOnly Cookie**: Prevents XSS attacks by storing tokens in secure, `httpOnly` cookies rather than `localStorage`.
+- **Dual-Token Strategy**: Short-lived `accessToken` (15m) and long-lived `refreshToken` (7d) stored in secure, `httpOnly` cookies.
+- **Refresh Token Rotation & Revocation**: Refresh tokens are tracked in `RefreshTokenRepository` and rotated on every refresh, with full revocation on logout.
+- **Auto-Refresh Handling**: Middleware detects expired access tokens (`TOKEN_EXPIRED`), prompting automatic token refresh.
 - **Protected Routes**: Middleware (`authenticateToken`) verifying incoming JWT cookies.
 - **Role-based Authorization**: Example middleware (`requireAdminRole`) for restricted routes.
-- **Session Logout**: Clears authentication cookies cleanly on logout.
+- **Session Logout**: Clears authentication cookies and invalidates refresh tokens on logout.
 - **CORS Configured**: Configured for credentials handling between Vite (`http://localhost:5173`) and Express (`http://localhost:5000`).
 
 ---
@@ -27,9 +29,9 @@ Nodejs_Auth_JWT/
 │   ├── package.json
 │   └── src/
 │       ├── config/           # Centralized environment configuration
-│       ├── controllers/      # Request handlers with Constructor Injection
+│       ├── controllers/      # Auth & User controllers with Constructor Injection
 │       ├── middleware/       # JWT auth & error handling middlewares
-│       ├── repositories/     # Data access layer (UserRepository)
+│       ├── repositories/     # UserRepository & RefreshTokenRepository
 │       ├── routes/           # Express router factories
 │       ├── app.js            # Composition Root configuring Express
 │       └── server.js         # HTTP server entrypoint
@@ -119,9 +121,10 @@ Nodejs_Auth_JWT/
 | Method | Endpoint | Description | Protected |
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/signup` | Register a new user | No |
-| `POST` | `/api/signin` | Sign in & set `token` HttpOnly cookie | No |
-| `GET` | `/api/profile` | Get current user's profile | Yes (JWT Cookie) |
-| `POST` | `/api/logout` | Clear `token` cookie and log out | No |
+| `POST` | `/api/signin` | Sign in & set `accessToken` and `refreshToken` cookies | No |
+| `POST` | `/api/refresh`| Rotate `refreshToken` & issue new `accessToken` cookie | Refresh Cookie |
+| `GET` | `/api/profile` | Get current user's profile | Yes (Access Cookie) |
+| `POST` | `/api/logout` | Revoke `refreshToken` & clear all auth cookies | No |
 | `DELETE` | `/api/delete/:id`| Delete user by ID | Yes (Admin Role) |
 
 ---

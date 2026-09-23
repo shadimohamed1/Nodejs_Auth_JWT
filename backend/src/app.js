@@ -3,13 +3,17 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { config } from "./config/env.js";
 import { UserRepository } from "./repositories/userRepository.js";
+import { RefreshTokenRepository } from "./repositories/refreshTokenRepository.js";
 import { AuthController } from "./controllers/authController.js";
 import { UserController } from "./controllers/userController.js";
 import { createApiRouter } from "./routes/index.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorMiddleware.js";
 
-export function createApp({ userRepository = new UserRepository() } = {}) {
-  const authController = new AuthController(userRepository);
+export function createApp({
+  userRepository = new UserRepository(),
+  refreshTokenRepository = new RefreshTokenRepository()
+} = {}) {
+  const authController = new AuthController(userRepository, refreshTokenRepository);
   const userController = new UserController(userRepository);
 
   const app = express();
